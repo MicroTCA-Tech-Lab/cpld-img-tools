@@ -19,6 +19,8 @@ from array import array
 import hashlib
 from bin2hpm import rle
 
+quiet_mode = False
+
 
 def _grouper(n, iterable, padvalue=None):
     "grouper(3, 'abcdefg', 'x') -> ('a','b','c'), ('d','e','f'), ('g','x','x')"
@@ -70,7 +72,7 @@ def convert_bitstream_item(key, val, blksize=None):
         bin_blk = array('B', filter(lambda x: x is not None, bin_blk))
         # Create RLE-encoded block
         block = enc_u32(offs)
-        block += bytes(rle.encode(bin_blk))
+        block += bytes(rle.encode(bin_blk, quiet_mode=quiet_mode))
         result += pad_key(key) + enc_u32(len(block)) + block
         offs += len(bin_blk) * 8
 
@@ -135,6 +137,8 @@ def jed_conv(infile, blksize=None):
 
 
 def main():
+    global quiet_mode
+
     parser = argparse.ArgumentParser(
         description='.jed file parser / converter'
     )
@@ -150,14 +154,20 @@ def main():
                         type=int,
                         help='max. block size per packet'
                         )
+    parser.add_argument('-q', '--quiet',
+                        action='store_true',
+                        help='Quiet mode'
+                        )
     args = parser.parse_args()
+    quiet_mode = args.quiet
 
     outfile = args.outfile
     if not outfile:
         basename, _ = os.path.splitext(os.path.basename(args.infile))
         outfile = basename + '.bin'
 
-    print(f'Converting {args.infile} to {outfile}')
+    if not quiet_mode:
+        print(f'Converting {args.infile} to {outfile}')
     with open(outfile, 'wb') as f:
         f.write(jed_conv(args.infile, blksize=args.blksize)[0])
 

@@ -82,7 +82,7 @@ def main():
     update_img, img_hash = jed_conv.jed_conv(args.infile, 512, args.img_hash)
 
     if args.binfile:
-        basename, _ = os.path.splitext(os.path.basename(outfile))
+        basename, _ = os.path.splitext(outfile)
         binfile = basename + ".bin"
         open(binfile, "wb").write(update_img)
         print(f"CPLD binfile {binfile} created.")
